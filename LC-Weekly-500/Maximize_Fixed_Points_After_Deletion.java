@@ -1,37 +1,60 @@
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
-public class Maximize_Fixed_Points_After_Deletion {
-    public static int maxFixedPoints(int[] nums) {
-        int[][] memo = new int[nums.length][nums.length];
-        for (int i = 0; i < nums.length; i++) {
-            Arrays.fill(memo[i], -1);
+class Maximize_Fixed_Points_After_Deletion {
+
+    private int findLB(int target, ArrayList<Integer> nums) {
+        int low = 0, high = nums.size() - 1;
+        int lb = nums.size();
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            if (nums.get(mid) >= target) {
+                lb = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
         }
-        return findMaxFixedPoints(0, 0, nums, memo);
+        return lb;
     }
 
-    private static int findMaxFixedPoints(int i, int shift, int[] nums, int[][] memo) {
-        if (i == nums.length) {
-            return 0;
+    public int maxFixedPoints(int[] nums) {
+        ArrayList<int[]> chosen = new ArrayList<>();
+        for (int i = 0; i < nums.length; i++) {
+            if (nums[i] <= i) {
+                chosen.add(new int[]{i - nums[i], nums[i]});
+            }
         }
-        if (memo[i][shift] != -1) {
-            return memo[i][shift];
+
+        Collections.sort(chosen, (a, b) -> {
+            if (a[0] == b[0]) {
+                return a[1] - b[1];
+            }
+            return a[0] - b[0];
+        });
+
+        ArrayList<Integer> sequence = new ArrayList<>();
+        for (int[] c : chosen) {
+            int pos = findLB(c[1], sequence);
+            if (pos == sequence.size()) {
+                sequence.add(c[1]);
+            } else {
+                sequence.set(pos, c[1]);
+            }
         }
-        // delete
-        int way1 = findMaxFixedPoints(i + 1, shift + 1, nums, memo);
-        // keep
-        int way2 = (nums[i] == i - shift ? 1 : 0) + findMaxFixedPoints(i + 1, shift, nums, memo);
-        memo[i][shift] = Math.max(way1, way2);
-        return memo[i][shift];
+
+        return sequence.size();
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         int n = sc.nextInt();
+        Maximize_Fixed_Points_After_Deletion mfpad = new Maximize_Fixed_Points_After_Deletion();
         int[] nums = new int[n];
         for (int i = 0; i < n; i++) {
             nums[i] = sc.nextInt();
         }
-        System.out.println(maxFixedPoints(nums));
+        System.out.println(mfpad.maxFixedPoints(nums));
     }
 }
